@@ -19,7 +19,7 @@ jobs:
         poetry install
     - name: Lint
       run: |
-        poetry run scripts/lint.sh
+        scripts/lint.sh
   # Test:
   #   runs-on: ubuntu-latest
   # ImageBuild:
