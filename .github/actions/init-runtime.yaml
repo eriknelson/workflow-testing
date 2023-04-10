@@ -1,0 +1,17 @@
+name: 'Initialize Poetry Runtime'
+description: 'Installs the basic poetry runtime and project deps'
+inputs:
+  python-version:
+    description: 'setup-python verison'
+    required: false
+    default: '3.11'
+runs:
+  using: composite
+  steps:
+  - uses: actions/checkout@v3
+  - run: pipx install poetry
+  - uses: actions/setup-python@v4
+    with:
+      python-version: '3.11'
+      cache: poetry
+  - run: poetry install
