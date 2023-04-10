@@ -1,4 +1,4 @@
-name: Verify
+name: Verify and Build
 on:
   pull_request:
     branches:
@@ -8,35 +8,44 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.11'
-      - name: Init runtime
-        run: |
-          python3 -m ensurepip
-          pip3 install --no-cache --upgrade pip setuptools
-          pip3 install poetry
-          poetry env info
-          poetry install
+      - uses: ./.github/actions/init-runtime
       - name: Lint
+        run: ./scripts/lint.sh
+  Test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/init-runtime
+      - name: Test
+        run: ./scripts/test.sh
+  Build:
+    runs-on: ubuntu-latest
+    env:
+      img_reg: ghcr.io
+      img_repo: eriknelson
+      img_name: workflow-testing
+    steps:
+      - uses: actions/checkout@v3
+      - name: Extract branch name and set as img_tag (push events)
+        if: github.event_name == 'push'
         run: |
-          scripts/lint.sh
-  # Test:
-  #   runs-on: ubuntu-latest
-  #   - name: Set up Python ${{ matrix.python-version }}
-  #     uses: actions/setup-python@v4
-  #     with:
-  #       python-version: '3.11'
-  #   - name: Init runtime
-  #     run: |
-  #       python3 -m ensurepip
-  #       pip3 install --no-cache --upgrade pip setuptools
-  #       pip3 install poetry
-  #       poetry env info
-  #       poetry install
-  #   - name: Test
-  #     run: |
-  #       scripts/test.sh
-  # ImageBuild:
-  #   runs-on: ubuntu-latest
+          echo "img_tag=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
+          echo "branch=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
+      - name: Extract branch name and set as img_tag (pull_request events)
+        if: github.event_name == 'pull_request'
+        run: |
+          echo "img_tag=${{ github.base_ref }}" >> $GITHUB_ENV
+          echo "branch=${{ github.base_ref }}" >> $GITHUB_ENV
+      - name: Set fqin
+        run: |
+          echo "fqin=${{env.img_reg}}/${{env.img_repo}}/${{env.img_name}}:${{env.img_tag}}" >> $GITHUB_ENV
+      - name: Build docker image
+        run: |
+          docker build -t ${{env.fqin}} -f docker/Dockerfile .
+      - name: Stash build image for publication if merged to main branch
+        if: github.event_name == 'push'
+        uses: ishworkh/docker-image-artifact-upload@v1
+        with:
+          image: '${{env.fqin}}'
+          retention_days: '1'
+

@@ -1,0 +1,14 @@
+name: Publish
+on:
+  push:
+    branches:
+      - main
+jobs:
+  Verify:
+    uses: ./.github/workflows/verify.yaml
+  Publish:
+    steps:
+      - name: Download image
+        uses: ishworkh/docker-image-artifact-download@v1
+        with:
+          image: '${{env.fqin}}'
