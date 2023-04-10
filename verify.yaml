@@ -1,4 +1,4 @@
-name: Verify
+name: Publish
 on:
   pull_request:
     branches:

@@ -1,0 +1,41 @@
+name: Publish
+on:
+  push:
+    branches:
+      - main
+jobs:
+  Lint:
+    runs-on: ubuntu-latest
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    - name: Init runtime
+      run: |
+        python3 -m ensurepip
+        pip3 install --no-cache --upgrade pip setuptools
+        pip3 install poetry
+        poetry env info
+        poetry install
+    - name: Lint
+      run: |
+        poetry run scripts/lint.sh
+  Publish:
+    env:
+      registry: ghcr.io
+      repo: eriknelson
+      img_name: workflow-testing
+    - name: Extract branch name and set as img_tag
+      run: |
+        echo "img_tag=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
+        echo "branch=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
+    - name: Set fqin
+      run: |
+        echo "fqin=${{env.registry}}/${{env.repo}}/${{env.img_name}}:${{env.img_tag}}" >> $GITHUB_ENV
+    - name: Build
+      run: |
+        docker build -t ${{env.fqin}} -f docker/Dockerfile .
+  # Test:
+  #   runs-on: ubuntu-latest
+  # ImageBuild:
+  #   runs-on: ubuntu-latest
