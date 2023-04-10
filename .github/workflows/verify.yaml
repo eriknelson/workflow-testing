@@ -8,13 +8,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: ./.github/actions/init-runtime.yaml
+      - uses: ./.github/actions/init-runtime
       - name: Lint
         run: ./scripts/lint.sh
   Test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: ./.github/actions/init-runtime.yaml
+      - uses: ./.github/actions/init-runtime
       - name: Test
         run: ./scripts/test.sh
