@@ -3,7 +3,11 @@ on:
   pull_request:
     branches:
       - main
-  workflow_call: {}
+  workflow_call:
+    outputs:
+      fqin:
+        description: The fully qualified image name
+        value: ${{ jobs.build.outputs.fqin }}
 jobs:
   Lint:
     runs-on: ubuntu-latest
@@ -25,6 +29,8 @@ jobs:
       img_reg: ghcr.io
       img_repo: eriknelson
       img_name: workflow-testing
+    outputs:
+      fqin: ${{ steps.set_fqin_output.outputs.fqin }}
     steps:
       - uses: actions/checkout@v3
       - name: Extract branch name and set as img_tag (push events)
@@ -40,6 +46,10 @@ jobs:
       - name: Set fqin
         run: |
           echo "fqin=${{env.img_reg}}/${{env.img_repo}}/${{env.img_name}}:${{env.img_tag}}" >> $GITHUB_ENV
+      - name: Set fqin output
+        id: set_fqin_output
+        run: |
+          echo "fqin=${{env.fqin}}" >> $GITHUB_OUTPUT
       - name: Build docker image
         run: |
           docker build -t ${{env.fqin}} -f docker/Dockerfile .

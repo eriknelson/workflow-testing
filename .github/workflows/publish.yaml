@@ -13,4 +13,4 @@ jobs:
       - name: Download image
         uses: ishworkh/docker-image-artifact-download@v1
         with:
-          image: '${{env.fqin}}'
+          image: '${{needs.Verify.outputs.fqin}}'
