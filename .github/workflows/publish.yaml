@@ -1,0 +1,11 @@
+name: Publish
+on:
+  push:
+    branches:
+      - main
+jobs:
+  Verify:
+    uses: ./.github/workflows/verify.yaml
+    steps:
+      - run: echo 'Hello world.'
+      - run: docker images
