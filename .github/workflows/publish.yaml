@@ -6,6 +6,9 @@ on:
 jobs:
   Verify:
     uses: ./.github/workflows/verify.yaml
+  Publish:
     steps:
-      - run: echo 'Hello world.'
-      - run: docker images
+      - name: Download image
+        uses: ishworkh/docker-image-artifact-download@v1
+        with:
+          image: '${{env.fqin}}'

@@ -1,4 +1,4 @@
-name: Verify
+name: Verify and Build
 on:
   pull_request:
     branches:
@@ -42,3 +42,10 @@ jobs:
       - name: Build docker image
         run: |
           docker build -t ${{env.fqin}} -f docker/Dockerfile .
+      - name: Stash build image for publication if merged to main branch
+        if: github.event_name == 'push'
+        uses: ishworkh/docker-image-artifact-upload@v1
+        with:
+          image: '${{env.fqin}}'
+          retention_days: '1'
+
